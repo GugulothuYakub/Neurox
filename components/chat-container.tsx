@@ -31,7 +31,7 @@ export function ChatContainer({ messages, isLoading }: ChatContainerProps) {
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold mb-2">Ask Junior</h2>
+          <h2 className="text-xl font-semibold mb-2">Ask Neurox</h2>
           <p className="text-muted-foreground max-w-md">
             Ask me anything and I'll do my best to help you. I can answer questions, provide information, or just chat.
           </p>
