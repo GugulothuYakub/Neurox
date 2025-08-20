@@ -125,7 +125,7 @@ export default function ChatbotPage() {
     return (
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            Loading Junior...
+            Loading Neurox...
         </div>
      );
   }
@@ -145,7 +145,7 @@ export default function ChatbotPage() {
       <header className="border-b backdrop-blur-sm bg-background/80 sticky top-0 z-10">
         <div className="container flex items-center justify-between h-16 px-4 mx-auto">
           <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Junior
+            Neurox
           </h1>
           <div className="flex items-center gap-2">
             <HistoryDropdown
