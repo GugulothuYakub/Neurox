@@ -1,4 +1,5 @@
 import type { Message } from "ai"
+import Image from "next/image"
 import { ChatMessage } from "@/components/chat-message"
 import { ChatLoading } from "@/components/chat-loading"
 import { useEffect } from "react";
@@ -17,7 +18,7 @@ export function ChatContainer({ messages, isLoading }: ChatContainerProps) {
     <div className="flex flex-col gap-6">
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-          <div className="rounded-full bg-primary/10 p-4 mb-4">
+          {/* <div className="rounded-full bg-primary/10 p-4 mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -29,7 +30,15 @@ export function ChatContainer({ messages, isLoading }: ChatContainerProps) {
               className="h-10 w-10 text-primary"
             >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+            </svg> */}
+            <div className="mb-4">
+            <Image
+              src="/Neurox.png"
+              alt="Neurox"
+              width={80}
+              height={80}
+              className="rounded-full"
+            />
           </div>
           <h2 className="text-xl font-semibold mb-2">Ask Neurox</h2>
           <p className="text-muted-foreground max-w-md">
