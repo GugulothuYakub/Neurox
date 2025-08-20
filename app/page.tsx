@@ -1,18 +1,27 @@
-// pages/ChatbotPage.tsx
+// app/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useChat, SessionInfo } from "@/hooks/useChat"; // Assuming SessionInfo is exported from useChat
+import { useState, useEffect, useRef, FormEvent, ChangeEvent } from "react";
+import { useChat, SessionInfo, Message } from "@/hooks/useChat"; // Message is exported
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserProfile } from "@/components/user-profile";
 import { ChatContainer } from "@/components/chat-container";
 import { ChatInput } from "@/components/chat-input";
 import { HistoryDropdown } from "@/components/history-dropdown";
 import { AuthGate } from "@/components/auth-gate";
-import { Loader2 } from "lucide-react"; // For a loading spinner
+import { Loader2 } from "lucide-react";
 
 const AUTH_KEY = "app_authenticated_user_v1";
 const USERNAME_KEY = "app_username_v1";
+
+const fileToDataURL = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
 
 export default function ChatbotPage() {
   const [mounted, setMounted] = useState(false);
@@ -23,11 +32,11 @@ export default function ChatbotPage() {
       : process.env.NEXT_PUBLIC_DEFAULT_USERNAME || "Guest"
   );
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const appPassword = process.env.NEXT_PUBLIC_APP_PASSWORD;
   const defaultUsernameFromEnv = process.env.NEXT_PUBLIC_DEFAULT_USERNAME || "User";
 
-  // Effect to check authentication status on mount
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
@@ -38,46 +47,41 @@ export default function ChatbotPage() {
         setIsAuthenticated(true);
         setCurrentUsername(storedUsername);
       } else if (!appPassword) {
-        // If no app password is set, consider the user "authenticated" by default as guest
-        console.warn("NEXT_PUBLIC_APP_PASSWORD is not set. Bypassing authentication gate.");
         setIsAuthenticated(true);
-        // Use default or existing localStorage username if any
         setCurrentUsername(storedUsername || defaultUsernameFromEnv);
-        // Optionally, set localStorage items as if authenticated
         localStorage.setItem(AUTH_KEY, "true");
         localStorage.setItem(USERNAME_KEY, storedUsername || defaultUsernameFromEnv);
       }
     }
-  }, [appPassword, defaultUsernameFromEnv]); // Rerun if appPassword changes (e.g. during dev)
+  }, [appPassword, defaultUsernameFromEnv]);
 
-  // useChat hook initialization
   const {
-    messages,
+    messages, // This is currentMessages from the hook
     input,
-    isLoading: isChatLoading, // Renamed to avoid conflict with component-level isLoading
+    isLoading: isChatLoading,
     activeSessionId,
     sessions,
     handleInputChange,
-    handleSubmit,
+    handleSubmit: hookHandleSubmit, // Renamed to avoid conflict
     switchSession,
     startNewSession,
-    // clearAllChatHistory, // If you added this function to useChat
+    clearAllChatHistory,
+    setInput, // <-- Destructure setInput from the hook
   } = useChat({
-    api: "/api/chat", // Assuming no basePath now
+    api: "/api/chat",
   });
 
-  // Effect to scroll chat container
   useEffect(() => {
     if (chatContainerRef.current) {
+      // Delay scroll slightly to allow new message to render and affect scrollHeight
       requestAnimationFrame(() => {
         if (chatContainerRef.current) {
-             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
       });
     }
-  }, [messages, isChatLoading]);
+  }, [messages, isChatLoading]); // isChatLoading helps if a placeholder is added
 
-  // Callback for successful authentication
   const handleAuthenticationSuccess = (username: string) => {
     if (typeof window !== 'undefined') {
         localStorage.setItem(AUTH_KEY, "true");
@@ -87,9 +91,38 @@ export default function ChatbotPage() {
     setIsAuthenticated(true);
   };
 
-  // Loading state before component is mounted
+  const handleFormSubmitWithFile = async (
+    event: FormEvent<HTMLFormElement>,
+    fileToSubmit: File | null
+  ) => {
+    // event.preventDefault(); // The hook's handleSubmit now does this
+
+    let fileDataPayload: Message['data'] | undefined = undefined;
+
+    if (fileToSubmit) {
+      try {
+        const dataUrl = await fileToDataURL(fileToSubmit);
+        fileDataPayload = {
+          fileDataUrl: dataUrl,
+          fileName: fileToSubmit.name,
+          fileType: fileToSubmit.type,
+        };
+      } catch (err) {
+        console.error("Error converting file to Data URL:", err);
+        // Optionally, display an error to the user (e.g., using a toast notification)
+        return; 
+      }
+    }
+
+    // Call the hook's handleSubmit with the event and the data payload
+    await hookHandleSubmit(event, { data: fileDataPayload });
+
+    // setInput(''); // The hook's handleSubmit now clears its own input state
+    setSelectedFile(null); // Clear the locally selected file
+  };
+
   if (!mounted) {
-     return (
+    return (
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
             <Loader2 className="h-8 w-8 animate-spin mr-2" />
             Loading Junior...
@@ -97,7 +130,6 @@ export default function ChatbotPage() {
      );
   }
 
-  // If password is required and user is not authenticated, show AuthGate
   if (appPassword && !isAuthenticated) {
     return (
       <AuthGate
@@ -108,7 +140,6 @@ export default function ChatbotPage() {
     );
   }
 
-  // Main chat UI
   return (
     <div className="flex flex-col h-screen bg-background transition-colors duration-300">
       <header className="border-b backdrop-blur-sm bg-background/80 sticky top-0 z-10">
@@ -118,14 +149,14 @@ export default function ChatbotPage() {
           </h1>
           <div className="flex items-center gap-2">
             <HistoryDropdown
-               sessions={sessions as SessionInfo[]} // Cast if necessary, ensure SessionInfo is exported
+               sessions={sessions} // Already SessionInfo[] from getSessionList
                activeSessionId={activeSessionId}
                onSelectSession={switchSession}
                onStartNew={startNewSession}
-               // onClearAll={clearAllChatHistory} // Optional
+               onClearAll={clearAllChatHistory} // Optional
              />
             <ThemeToggle />
-            <UserProfile username={currentUsername} avatarUrl="/profile.jpg?height=40&width=40" /> {/* Update with your avatar logic */}
+            <UserProfile username={currentUsername} avatarUrl="/profile.jpg?height=40&width=40" />
           </div>
         </div>
       </header>
@@ -133,8 +164,9 @@ export default function ChatbotPage() {
       <main className="flex-1 overflow-hidden relative">
            <div ref={chatContainerRef} className="h-full overflow-y-auto p-4 pb-24 md:pb-28">
              <ChatContainer
-                 messages={messages.map(m => ({ ...m, role: m.role as "user" | "system" | "assistant" }))}
-                 isLoading={isChatLoading} // Pass the loading state from useChat
+                 // Ensure roles are correctly typed if Message interface in ChatContainer expects stricter roles
+                 messages={messages.map(m => ({ ...m, role: m.role as "user" | "assistant" | "system" }))}
+                 isLoading={isChatLoading && messages.length === 0} // Initial loading
              />
            </div>
           <div
@@ -144,10 +176,11 @@ export default function ChatbotPage() {
                    <ChatInput
                        input={input}
                        handleInputChange={handleInputChange}
-                       handleSubmit={handleSubmit}
-                       // Disable input if not authenticated (and password is set) OR if chat is loading a response
+                       handleSubmit={handleFormSubmitWithFile} // Pass our wrapped handler
                        isLoading={(!isAuthenticated && !!appPassword) || isChatLoading}
-                       key={activeSessionId || 'input-new'} // Re-key to reset on session switch if desired
+                       selectedFile={selectedFile}
+                       setSelectedFile={setSelectedFile}
+                       key={activeSessionId || 'input-new'}
                    />
               </div>
           </div>

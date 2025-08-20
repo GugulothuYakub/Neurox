@@ -1,13 +1,13 @@
 // src/hooks/useChat.ts
-
+ 
 import { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid'; // Need UUID for session IDs
-
+ 
 // --- Configuration ---
 const CHAT_SESSIONS_KEY = "chatSessions_v1"; // Key for ALL sessions
 const MAX_HISTORY_PER_SESSION = 20; // Max messages per individual session
 // -------------------
-
+ 
 // Define the structure for a chat message (ensure createdAt is Date)
 interface Message {
   id: string;
@@ -16,22 +16,22 @@ interface Message {
   createdAt: Date; // Use Date object consistently
   type?: "json" | "code" | "text";
 }
-
+ 
 // Interface for the data stored in localStorage (nested structure)
 interface StoredMessage extends Omit<Message, 'createdAt'> {
   createdAt: string; // Dates are stored as strings
 }
-
+ 
 // Structure for the main storage object
 type ChatSessions = Record<string, StoredMessage[]>;
-
+ 
 // Structure for session info used by the dropdown
 export interface SessionInfo {
   id: string;
   firstPrompt: string;
   lastUpdate: Date; // To sort sessions later if needed
 }
-
+ 
 // Custom hook for managing chat state and interactions with multiple sessions
 export function useChat({ api }: { api: string }) {
   // State for all sessions' messages (loaded from storage)
@@ -40,11 +40,11 @@ export function useChat({ api }: { api: string }) {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   // Derived state: Messages for the *currently active* session
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
-
+ 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false); // Track if history loaded
-
+ 
   // --- Load all sessions from localStorage on initial mount ---
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -56,7 +56,7 @@ export function useChat({ api }: { api: string }) {
           const loadedSessions: Record<string, Message[]> = {};
           let latestSessionId: string | null = null;
           let latestTimestamp = new Date(0);
-
+ 
           // Validate and convert stored data
           for (const sessionId in parsedStoredSessions) {
             if (Object.prototype.hasOwnProperty.call(parsedStoredSessions, sessionId) && Array.isArray(parsedStoredSessions[sessionId])) {
@@ -95,7 +95,7 @@ export function useChat({ api }: { api: string }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
+ 
    // --- Update currentMessages whenever activeSessionId or allSessions change ---
    useEffect(() => {
       if (activeSessionId && allSessions[activeSessionId]) {
@@ -104,8 +104,8 @@ export function useChat({ api }: { api: string }) {
          setCurrentMessages([]); // Clear messages if no active session or session doesn't exist
       }
    }, [activeSessionId, allSessions]);
-
-
+ 
+ 
   // --- Save all sessions to localStorage whenever allSessions changes ---
   useEffect(() => {
     if (isInitialized && typeof window !== 'undefined') {
@@ -128,7 +128,7 @@ export function useChat({ api }: { api: string }) {
       }
     }
   }, [allSessions, isInitialized]);
-
+ 
    // --- Helper Function to update a specific session ---
    const updateSessionMessages = (sessionId: string, newMessages: Message[]) => {
        setAllSessions(prevSessions => ({
@@ -136,22 +136,22 @@ export function useChat({ api }: { api: string }) {
            [sessionId]: newMessages,
        }));
    };
-
-
+ 
+ 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInput(e.target.value);
   }, []);
-
+ 
   // --- Modified handleSubmit to work with active session ---
   const handleSubmit = useCallback(async (e?: React.FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault();
-
+ 
     const trimmedInput = input.trim();
     if (!trimmedInput || isLoading) return;
-
+ 
     setIsLoading(true);
     setInput(""); // Clear input early
-
+ 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
@@ -159,10 +159,10 @@ export function useChat({ api }: { api: string }) {
       createdAt: new Date(),
       type: "text",
     };
-
+ 
     let currentSessionId = activeSessionId;
     let sessionMessages: Message[] = [];
-
+ 
     // If no active session, start a new one
     if (!currentSessionId || !allSessions[currentSessionId]) {
       currentSessionId = uuidv4(); // Generate a new session ID
@@ -175,30 +175,30 @@ export function useChat({ api }: { api: string }) {
        sessionMessages = [...allSessions[currentSessionId], userMessage];
        updateSessionMessages(currentSessionId, sessionMessages);
     }
-
-
+ 
+ 
     // Prepare payload using the up-to-date list for the *current* session
     const messagesForApi = sessionMessages.map(({ role, content }) => ({ role, content }));
-
+ 
     try {
       const response = await fetch(api, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: messagesForApi }),
       });
-
+ 
       const botMessageReceivedAt = new Date();
-
+ 
       if (!response.ok) {
         const errorBody = await response.text();
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
       }
-
+ 
       const botTextContent = await response.text();
       if (!botTextContent && botTextContent !== "") {
          throw new Error("Received empty or invalid response content from the API.");
       }
-
+ 
       const botMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -208,11 +208,11 @@ export function useChat({ api }: { api: string }) {
       };
       if (isJson(botMessage.content)) botMessage.type = "json";
       else if (isCode(botMessage.content)) botMessage.type = "code";
-
+ 
       // Add bot message to the *current* session's messages
       const finalSessionMessages = [...sessionMessages, botMessage];
       updateSessionMessages(currentSessionId, finalSessionMessages);
-
+ 
     } catch (error) {
         console.error("Error during chat submission or processing:", error);
         const errorMessage: Message = {
@@ -229,8 +229,8 @@ export function useChat({ api }: { api: string }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input, isLoading, api, activeSessionId, allSessions]); // Include dependencies
-
-
+ 
+ 
   // --- Function to switch the active session ---
   const switchSession = useCallback((sessionId: string | null) => {
       if (sessionId === null || allSessions[sessionId]) {
@@ -240,7 +240,7 @@ export function useChat({ api }: { api: string }) {
            console.warn(`Session ID "${sessionId}" not found.`);
       }
   }, [allSessions]);
-
+ 
   // --- Function to start a completely new chat ---
   const startNewSession = useCallback(() => {
       setActiveSessionId(null); // Deactivate current
@@ -248,7 +248,7 @@ export function useChat({ api }: { api: string }) {
       setInput(""); // Clear input
       // A new session ID will be generated on the *next* submit
   }, []);
-
+ 
   // --- Function to get session list for dropdown ---
    const getSessionList = useCallback((): SessionInfo[] => {
        return Object.entries(allSessions)
@@ -265,8 +265,8 @@ export function useChat({ api }: { api: string }) {
          // Sort by most recently updated
          .sort((a, b) => b.lastUpdate.getTime() - a.lastUpdate.getTime());
    }, [allSessions]);
-
-
+ 
+ 
   // --- Function to clear all history ---
   const clearAllChatHistory = useCallback(() => {
      setAllSessions({});
@@ -275,8 +275,8 @@ export function useChat({ api }: { api: string }) {
      setInput("");
      localStorage.removeItem(CHAT_SESSIONS_KEY);
   }, []);
-
-
+ 
+ 
   return {
     messages: currentMessages, // Return messages of the ACTIVE session
     input,
@@ -290,7 +290,7 @@ export function useChat({ api }: { api: string }) {
     clearAllChatHistory, // Optional
   };
 }
-
+ 
 // Utility functions (isJson, isCode) remain the same
 function isJson(str: string): boolean {
     if (typeof str !== 'string') return false;
@@ -300,7 +300,7 @@ function isJson(str: string): boolean {
     }
     return false;
 }
-
+ 
 function isCode(str: string): boolean {
   if (typeof str !== 'string') return false;
   if (str.includes('```')) return true;
@@ -311,3 +311,4 @@ function isCode(str: string): boolean {
   for (const indicator of codeIndicators) { const regex = new RegExp(indicator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); if (regex.test(str)) { indicatorCount++; } }
   return indicatorCount >= 2;
 }
+ 
