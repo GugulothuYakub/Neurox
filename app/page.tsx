@@ -35,7 +35,8 @@ export default function ChatbotPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const appPassword = process.env.NEXT_PUBLIC_APP_PASSWORD;
-  const defaultUsernameFromEnv = process.env.NEXT_PUBLIC_DEFAULT_USERNAME || "User";
+  // const defaultUsernameFromEnv = process.env.NEXT_PUBLIC_DEFAULT_USERNAME || "User";
+  const defaultUsernameFromEnv = process.env.NEXT_PUBLIC_DEFAULT_USERNAME || "Yakub";
 
   useEffect(() => {
     setMounted(true);
@@ -156,7 +157,8 @@ export default function ChatbotPage() {
                onClearAll={clearAllChatHistory} // Optional
              />
             <ThemeToggle />
-            <UserProfile username={currentUsername} avatarUrl="/profile.jpg?height=40&width=40" />
+            <UserProfile username={currentUsername} avatarUrl="/Media.jpg?height=40&width=40" />
+            {/* <UserProfile username={currentUsername} avatarUrl="/Media.jpg" /> */}
           </div>
         </div>
       </header>
