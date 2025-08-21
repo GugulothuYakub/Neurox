@@ -40,7 +40,7 @@ export function ChatContainer({ messages, isLoading }: ChatContainerProps) {
               className="rounded-full"
             />
           </div>
-          <h2 className="text-xl font-semibold mb-2">Ask Neurox</h2>
+          <h2 className="text-xl font-semibold mb-2">Ask NeuroX</h2>
           <p className="text-muted-foreground max-w-md">
             Ask me anything and I'll do my best to help you. I can answer questions, provide information, or just chat.
           </p>

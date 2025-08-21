@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Neurox",
-  description: "Neurox is here for you",
+  title: "NeuroX",
+  description: "NeuroX is here for you",
     generator: 'MKN.dev'
 }
 
@@ -24,6 +24,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
+        <footer className="text-center p-4 text-xs text-gray-500">
+          © 2025 NeuroX. All rights reserved by Yakub Gugulothu.
+        </footer>
       </body>
     </html>
   )

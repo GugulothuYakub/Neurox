@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.company.appname', // Your app ID
-  appName: 'Neurox',           // Your app name
+  appName: 'NeuroX',           // Your app name
   webDir: 'out',             // <--- ENSURE THIS IS 'out'
   bundledWebRuntime: false,
   // If you had server configurations before, they might need to be reconsidered

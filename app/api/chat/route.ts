@@ -27,7 +27,7 @@ type SdkMessageParam = ChatCompletionMessageParam; // Use the SDK's type
 export const maxDuration = 60;
 const apiKey = process.env.TOGETHER_API_KEY;
 // const systemMessageContent = "You are Junior, a helpful and friendly AI assistant. Provide concise and accurate answers. If an image is mentioned, acknowledge it appropriately based on the context provided by its name.";
-const systemMessageContent = "You are Neurox, a helpful and friendly AI assistant. Provide concise and accurate answers. If an image is mentioned, acknowledge it appropriately based on the context provided by its name.";
+const systemMessageContent = "You are NeuroX, a helpful and friendly AI assistant. Provide concise and accurate answers. If an image is mentioned, acknowledge it appropriately based on the context provided by its name.";
 const API_CALL_TIMEOUT_MS = 55000;
 
 export async function POST(request: NextRequest) {

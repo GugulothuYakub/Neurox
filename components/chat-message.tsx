@@ -121,8 +121,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
     }
   }
 
-  // const avatarSrc = isUser ? '/Media.jpg' : '/placeholder.svg';
-  const avatarSrc = isUser ? '/Media.jpg' : '/Neurox.png';
+  // const avatarSrc = isUser ? '/Media.png' : '/placeholder.svg';
+  const avatarSrc = isUser ? '/Media.png' : '/Neurox.png';
 
   return (
     <div className={`flex items-start gap-4 w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
