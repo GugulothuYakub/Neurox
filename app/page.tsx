@@ -168,7 +168,8 @@ export default function ChatbotPage() {
              <ChatContainer
                  // Ensure roles are correctly typed if Message interface in ChatContainer expects stricter roles
                  messages={messages.map(m => ({ ...m, role: m.role as "user" | "assistant" | "system" }))}
-                 isLoading={isChatLoading && messages.length === 0} // Initial loading
+                //  isLoading={isChatLoading && messages.length === 0} // Initial loading
+                 isLoading={isChatLoading} 
              />
            </div>
           <div

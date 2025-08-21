@@ -1,10 +1,12 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+// import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bot } from "lucide-react"
 
 export function ChatLoading() {
   return (
     <div className="flex items-start gap-4 max-w-3xl mr-auto">
       <Avatar className="h-10 w-10 border border-primary/10 shadow-sm bg-primary/5">
+      <AvatarImage src="/Neurox.png" alt="Bot" />
         <AvatarFallback>
           <Bot className="h-6 w-6" />
         </AvatarFallback>
